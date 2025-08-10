@@ -5,9 +5,9 @@ db = pd.read_csv('/home/bruno/Hypertension_prediction/dataset/hypertension_datas
 
 print(db.head())
 
-y = db['hypertension']
-df = db.drop(['hypertension'], axis='columns')
+y = db['Has_Hypertension']
+df = db.drop(['Has_Hypertension'], axis='columns')
 x = df
 
-classes = db['hypertension'].value_counts()
+classes = db['Has_Hypertension'].value_counts()
 print(classes)
