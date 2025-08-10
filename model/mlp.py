@@ -31,6 +31,8 @@ model = tf.keras.models.Sequential([
 
 model.summary()
 
-model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+opt = tf.keras.optimizers.Adam(learning_rate=0.001)
+model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['accuracy'])
+
 history = model.fit(input_train_scaled, output_train, epochs=100, batch_size=32, 
                     validation_split=0.2, callbacks=[early_stopping])
