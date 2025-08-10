@@ -9,3 +9,6 @@ from tensorflow.keras.callbacks import EarlyStopping
 
 input_train = pd.read_csv('/home/bruno/Hypertension_prediction/dataset/train/input_train_balanced.csv')
 output_train = pd.read_csv('/home/bruno/Hypertension_prediction/dataset/train/output_train_balanced.csv')
+
+input_test = pd.read_csv('/home/bruno/Hypertension_prediction/dataset/test/input_test.csv')
+output_test = pd.read_csv('/home/bruno/Hypertension_prediction/dataset/test/output_test.csv')
