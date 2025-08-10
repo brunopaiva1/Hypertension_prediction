@@ -26,8 +26,10 @@ model = tf.keras.models.Sequential([
     tf.keras.layers.Dropout(0.5),
     tf.keras.layers.Dense(32, activation='relu'),
     tf.keras.layers.Dropout(0.5),
-    tf.keras.layers.Dense(1, activation='sigmoid')
+    tf.keras.layers.Dense(1, activation='sigmoid', name='output_layer')
 ])
+
+model.summary()
 
 model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 history = model.fit(input_train_scaled, output_train, epochs=100, batch_size=32, 
