@@ -12,3 +12,7 @@ output_train = pd.read_csv('/home/bruno/Hypertension_prediction/dataset/train/ou
 
 input_test = pd.read_csv('/home/bruno/Hypertension_prediction/dataset/test/input_test.csv')
 output_test = pd.read_csv('/home/bruno/Hypertension_prediction/dataset/test/output_test.csv')
+
+scaler = StandardScaler()
+input_train_scaled = scaler.fit_transform(input_train)
+input_test_scaled = scaler.transform(input_test)
