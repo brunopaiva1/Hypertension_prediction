@@ -6,9 +6,6 @@ import shap
 
 model = tf.keras.models.load_model('/home/bruno/Hypertension_prediction/model/hypertension_model.h5')
 
-# selected_features = ['age',  'Salt_intake', 'Stress_Score', 'BP_History', 'Sleep_Duration', 'BMI', 'Medication', 'Family_History', 
-#                      'Exercise_Level', 'Smoking_Status']
-
 input_test = pd.read_csv('/home/bruno/Hypertension_prediction/dataset/test/input_test_scaled.csv')
 input_train = pd.read_csv('/home/bruno/Hypertension_prediction/dataset/train/input_train_scaled.csv')
 
@@ -21,18 +18,18 @@ input_train.columns = correct_feature_names
 background_data = shap.sample(input_test, 100)
 explainer = shap.KernelExplainer(model.predict, background_data)
 
-shap_values = explainer.shap_values(input_test.iloc[:10])
+shap_values = explainer.shap_values(input_test.iloc[:50])
 
 print("SHAP values calculated.")
 
 shap_values = np.array(shap_values).squeeze(-1)
 
-shap.summary_plot(shap_values, input_test.iloc[:10], plot_type="bar", show=False)
+shap.summary_plot(shap_values, input_test.iloc[:50], plot_type="bar", show=False)
 plt.tight_layout()
 plt.savefig('/home/bruno/Hypertension_prediction/model/shap_summary_plot.png')
 plt.close()
 
-shap.dependence_plot('BP_History_Normal', shap_values, input_test.iloc[:10], show=False)
+shap.dependence_plot('BP_History_Normal', shap_values, input_test.iloc[:50], show=False)
 plt.tight_layout()
 plt.savefig('/home/bruno/Hypertension_prediction/model/shap_dependence_plot_BP_History_Normal.png')
 plt.close()
