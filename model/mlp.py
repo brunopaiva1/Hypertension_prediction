@@ -95,17 +95,22 @@ disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=['No Hypertens
 disp.plot(cmap=plt.cm.Blues)
 plt.title('Matriz de Confusão - Modelo Híbrido')
 plt.savefig('/home/bruno/Hypertension_prediction/confusion_matrix_hybrid.png')
-plt.close()
+plt.close() 
 
-plt.figure(figsize=(10, 6))
-plt.plot(history_classic.history['val_loss'], label='Classic Val Loss')
-plt.plot(history_hybrid.history['val_loss'], label='Hybrid Val Loss')
-plt.title('Comparação da Perda de Validação (Loss)')
+plt.figure(figsize=(12, 8)) 
+
+plt.plot(history_classic.history['val_loss'], label='Classic Val Loss', color='blue')
+plt.plot(history_classic.history['loss'], label='Classic Train Loss', color='cyan', linestyle='--') 
+
+plt.plot(history_hybrid.history['val_loss'], label='Hybrid Val Loss', color='orange')
+plt.plot(history_hybrid.history['loss'], label='Hybrid Train Loss', color='red', linestyle='--') 
+
+plt.title('Comparação Completa de Perda (Loss)')
 plt.ylabel('Perda (Loss)')
 plt.xlabel('Época (Epoch)')
 plt.legend()
 plt.grid(True)
-plt.savefig('/home/bruno/Hypertension_prediction/loss_comparison.png')
+plt.savefig('/home/bruno/Hypertension_prediction/loss_comparison_full.png')
 plt.close()
 
 print("\nProcesso concluído. Gráficos salvos com sucesso!")
