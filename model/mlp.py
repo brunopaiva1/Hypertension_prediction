@@ -16,6 +16,7 @@ from sklearn.svm import SVC
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 from catboost import CatBoostClassifier
+from tensorflow.keras.regularizers import l2
 
 input_train = pd.read_csv('/home/ubuntu/Hypertension_prediction/dataset/train/input_train_balanced.csv')
 output_train = pd.read_csv('/home/ubuntu/Hypertension_prediction/dataset/train/output_train_balanced.csv')
@@ -67,9 +68,9 @@ print("\n\n--- Resumo do Benchmark de Modelos Clássicos ---")
 results_df = pd.DataFrame(results).sort_values(by='F1-Score', ascending=False)
 print(results_df)
 
-early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
 input_dim = input_train_scaled.shape[1]
-n_qubits = 4
+n_qubits = 2
 
 print("\n--- Treinando Modelo Clássico (MLP) ---")
 model_classic = tf.keras.models.Sequential([
@@ -85,7 +86,7 @@ opt_classic = tf.keras.optimizers.Adam(learning_rate=0.001)
 model_classic.compile(optimizer=opt_classic, loss='binary_crossentropy', metrics=['accuracy'])
 history_classic = model_classic.fit(
     input_train_scaled, output_train_numeric,
-    epochs=300, batch_size=32, validation_split=0.2,
+    epochs=100, batch_size=32, validation_split=0.2,
     callbacks=[early_stopping], verbose=1
 )
 loss_c, acc_c = model_classic.evaluate(input_test_scaled, output_test_numeric, verbose=0)
@@ -105,8 +106,8 @@ quantum_layer = KerasLayer(quantum_circuit, weight_shapes, output_dim=1)
 
 model_hybrid = tf.keras.models.Sequential([
     tf.keras.layers.Input(shape=(input_dim,)),
-    tf.keras.layers.Dense(64, activation='relu'),
-    tf.keras.layers.Dropout(0.5),
+    tf.keras.layers.Dense(32,activation='relu', kernel_regularizer=l2(0.01)),
+    tf.keras.layers.Dropout(0.6),
     tf.keras.layers.Dense(n_qubits, activation='tanh'),
     quantum_layer,
     tf.keras.layers.Reshape((1,)),
@@ -117,7 +118,7 @@ opt_hybrid = tf.keras.optimizers.Adam(learning_rate=0.001)
 model_hybrid.compile(optimizer=opt_hybrid, loss='binary_crossentropy', metrics=['accuracy'])
 history_hybrid = model_hybrid.fit(
     input_train_scaled, output_train_numeric,
-    epochs=300, batch_size=32, validation_split=0.2,
+    epochs=100, batch_size=32, validation_split=0.2,
     callbacks=[early_stopping], verbose=1
 )
 loss_h, acc_h = model_hybrid.evaluate(input_test_scaled, output_test_numeric, verbose=0)
