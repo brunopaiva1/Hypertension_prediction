@@ -69,7 +69,7 @@ print(results_df)
 
 early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
 input_dim = input_train_scaled.shape[1]
-n_qubits = 4
+n_qubits = 2
 
 print("\n--- Treinando Modelo Clássico (MLP) ---")
 model_classic = tf.keras.models.Sequential([
@@ -85,7 +85,7 @@ opt_classic = tf.keras.optimizers.Adam(learning_rate=0.001)
 model_classic.compile(optimizer=opt_classic, loss='binary_crossentropy', metrics=['accuracy'])
 history_classic = model_classic.fit(
     input_train_scaled, output_train_numeric,
-    epochs=100, batch_size=32, validation_split=0.2,
+    epochs=300, batch_size=32, validation_split=0.2,
     callbacks=[early_stopping], verbose=1
 )
 loss_c, acc_c = model_classic.evaluate(input_test_scaled, output_test_numeric, verbose=0)
@@ -117,7 +117,7 @@ opt_hybrid = tf.keras.optimizers.Adam(learning_rate=0.001)
 model_hybrid.compile(optimizer=opt_hybrid, loss='binary_crossentropy', metrics=['accuracy'])
 history_hybrid = model_hybrid.fit(
     input_train_scaled, output_train_numeric,
-    epochs=100, batch_size=32, validation_split=0.2,
+    epochs=300, batch_size=32, validation_split=0.2,
     callbacks=[early_stopping], verbose=1
 )
 loss_h, acc_h = model_hybrid.evaluate(input_test_scaled, output_test_numeric, verbose=0)
