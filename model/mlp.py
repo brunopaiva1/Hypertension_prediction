@@ -1,7 +1,7 @@
 import os
 import tensorflow as tf
 import pennylane as qml
-from pennylane.qnn import KerasLayer
+from pennylane.qnn.keras import KerasLayer
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -17,10 +17,10 @@ from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 from catboost import CatBoostClassifier
 
-input_train = pd.read_csv('/home/bruno/Hypertension_prediction/dataset/train/input_train_balanced.csv')
-output_train = pd.read_csv('/home/bruno/Hypertension_prediction/dataset/train/output_train_balanced.csv')
-input_test = pd.read_csv('/home/bruno/Hypertension_prediction/dataset/test/input_test.csv')
-output_test = pd.read_csv('/home/bruno/Hypertension_prediction/dataset/test/output_test.csv')
+input_train = pd.read_csv('/home/ubuntu/Hypertension_prediction/dataset/train/input_train_balanced.csv')
+output_train = pd.read_csv('/home/ubuntu/Hypertension_prediction/dataset/train/output_train_balanced.csv')
+input_test = pd.read_csv('/home/ubuntu/Hypertension_prediction/dataset/test/input_test.csv')
+output_test = pd.read_csv('/home/ubuntu/Hypertension_prediction/dataset/test/output_test.csv')
 
 output_train_numeric = output_train['Has_Hypertension'].map({'Yes': 1, 'No': 0})
 output_test_numeric = output_test['Has_Hypertension'].map({'Yes': 1, 'No': 0})
@@ -69,7 +69,7 @@ print(results_df)
 
 early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
 input_dim = input_train_scaled.shape[1]
-n_qubits = 2
+n_qubits = 4
 
 print("\n--- Treinando Modelo Clássico (MLP) ---")
 model_classic = tf.keras.models.Sequential([
@@ -136,7 +136,7 @@ cm = confusion_matrix(output_test_numeric.values, predicted_classes_hybrid)
 disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=['No Hypertension', 'Hypertension'])
 disp.plot(cmap=plt.cm.Blues)
 plt.title('Matriz de Confusão - Modelo Híbrido')
-plt.savefig('/home/bruno/Hypertension_prediction/confusion_matrix_hybrid.png')
+plt.savefig('/home/ubuntu/Hypertension_prediction/plot-teste/confusion_matrix_hybrid.png')
 plt.close()
 
 plt.figure(figsize=(10, 6))
@@ -147,7 +147,7 @@ plt.ylabel('Perda (Loss)')
 plt.xlabel('Época (Epoch)')
 plt.legend()
 plt.grid(True)
-plt.savefig('/home/bruno/Hypertension_prediction/loss_comparison.png')
+plt.savefig('/home/bruno/Hypertension_prediction/plot-teste/loss_comparison.png')
 plt.close()
 
 print("\nProcesso concluído. Saída e gráficos salvos com sucesso!")
