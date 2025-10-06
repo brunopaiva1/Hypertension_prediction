@@ -18,10 +18,10 @@ from lightgbm import LGBMClassifier
 from catboost import CatBoostClassifier
 from tensorflow.keras.regularizers import l2
 
-input_train = pd.read_csv('/home/ubuntu/Hypertension_prediction/dataset/train/input_train_balanced.csv')
-output_train = pd.read_csv('/home/ubuntu/Hypertension_prediction/dataset/train/output_train_balanced.csv')
-input_test = pd.read_csv('/home/ubuntu/Hypertension_prediction/dataset/test/input_test.csv')
-output_test = pd.read_csv('/home/ubuntu/Hypertension_prediction/dataset/test/output_test.csv')
+input_train = pd.read_csv('/home/bruno/Hypertension_prediction/dataset/train/input_train_balanced.csv')
+output_train = pd.read_csv('/home/bruno/Hypertension_prediction/dataset/train/output_train_balanced.csv')
+input_test = pd.read_csv('/home/bruno/Hypertension_prediction/dataset/test/input_test.csv')
+output_test = pd.read_csv('/home/bruno/Hypertension_prediction/dataset/test/output_test.csv')
 
 output_train_numeric = output_train['Has_Hypertension'].map({'Yes': 1, 'No': 0})
 output_test_numeric = output_test['Has_Hypertension'].map({'Yes': 1, 'No': 0})
@@ -68,17 +68,17 @@ print("\n\n--- Resumo do Benchmark de Modelos Clássicos ---")
 results_df = pd.DataFrame(results).sort_values(by='F1-Score', ascending=False)
 print(results_df)
 
-early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
 input_dim = input_train_scaled.shape[1]
-n_qubits = 2
+n_qubits = 4
 
 print("\n--- Treinando Modelo Clássico (MLP) ---")
 model_classic = tf.keras.models.Sequential([
     tf.keras.layers.Input(shape=(input_dim,)),
     tf.keras.layers.Dense(64, activation='relu'),
-    tf.keras.layers.Dropout(0.5),
+    tf.keras.layers.Dropout(0.2),
     tf.keras.layers.Dense(32, activation='relu'),
-    tf.keras.layers.Dropout(0.5),
+    tf.keras.layers.Dropout(0.2),
     tf.keras.layers.Dense(1, activation='sigmoid')
 ])
 
@@ -92,25 +92,35 @@ history_classic = model_classic.fit(
 loss_c, acc_c = model_classic.evaluate(input_test_scaled, output_test_numeric, verbose=0)
 print(f"classic_mlp - Test Loss: {loss_c:.4f}, Test Accuracy: {acc_c:.4f}")
 
-print("\n--- Treinando Modelo Híbrido ---")
+print("\n--- Definindo e Desenhando Circuito Quântico ---")
 
 dev = qml.device("default.qubit", wires=n_qubits)
 @qml.qnode(dev, interface="tf")
 def quantum_circuit(inputs, weights):
     qml.AngleEmbedding(inputs, wires=range(n_qubits))
     qml.StronglyEntanglingLayers(weights, wires=range(n_qubits))
-    return qml.expval(qml.PauliZ(0))
+    return [qml.expval(qml.PauliZ(i)) for i in range(n_qubits)]
+
+fig, ax = qml.draw_mpl(quantum_circuit, style='pennylane')(tf.zeros(n_qubits), tf.zeros((1, n_qubits, 3)))
+plt.title(f'Circuito Quântico Híbrido com {n_qubits} Qubits', fontsize=14)
+plt.tight_layout()
+circuit_image_path = '/home/bruno/Hypertension_prediction/plot-teste/circuito_quantico_4qubits.png'
+plt.savefig(circuit_image_path)
+print(f"Imagem do circuito salva em: {circuit_image_path}")
+plt.close()
+
+print("\n--- Treinando Modelo Híbrido ---")
 
 weight_shapes = {"weights": (1, n_qubits, 3)}
-quantum_layer = KerasLayer(quantum_circuit, weight_shapes, output_dim=1)
+quantum_layer = KerasLayer(quantum_circuit, weight_shapes, output_dim=n_qubits)
 
 model_hybrid = tf.keras.models.Sequential([
     tf.keras.layers.Input(shape=(input_dim,)),
-    tf.keras.layers.Dense(64, activation='relu', kernel_regularizer=l2(0.01)),
-    tf.keras.layers.Dropout(0.5),
+    tf.keras.layers.Dense(64, activation='relu'), #, kernel_regularizer=l2(0.01)
+    tf.keras.layers.Dropout(0.2),
     tf.keras.layers.Dense(n_qubits, activation='tanh'),
     quantum_layer,
-    tf.keras.layers.Reshape((1,)),
+    # tf.keras.layers.Reshape((1,)),
     tf.keras.layers.Dense(1, activation='sigmoid', name='output_layer')
 ])
 
@@ -133,13 +143,34 @@ print("Classification Report:\n", report)
 
 print("\n--- Gerando Gráficos ---")
 
-cm = confusion_matrix(output_test_numeric.values, predicted_classes_hybrid)
-disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=['No Hypertension', 'Hypertension'])
-disp.plot(cmap=plt.cm.Blues)
-plt.title('Matriz de Confusão - Modelo Híbrido')
-plt.savefig('/home/ubuntu/Hypertension_prediction/plot-teste/confusion_matrix_hybrid.png')
-plt.close()
+# --- Matriz de Confusão do Modelo Clássico (MLP) ---
+# NOVO: Faz as previsões com o modelo clássico
+predictions_classic = model_classic.predict(input_test_scaled)
+predicted_classes_classic = (predictions_classic > 0.5).astype("int32")
 
+# NOVO: Calcula e plota a matriz de confusão
+cm_classic = confusion_matrix(output_test_numeric.values, predicted_classes_classic)
+disp_classic = ConfusionMatrixDisplay(confusion_matrix=cm_classic, display_labels=['No Hypertension', 'Hypertension'])
+disp_classic.plot(cmap=plt.cm.Blues)
+plt.title('Matriz de Confusão - Modelo Clássico (MLP)')
+plt.savefig('/home/bruno/Hypertension_prediction/plot-teste/confusion_matrix_classic.png')
+plt.close()
+print("Matriz de confusão do modelo clássico salva.")
+
+
+# --- Matriz de Confusão do Modelo Híbrido ---
+# (Esta parte você já tinha, apenas a mantive para ficar completo)
+cm_hybrid = confusion_matrix(output_test_numeric.values, predicted_classes_hybrid)
+disp_hybrid = ConfusionMatrixDisplay(confusion_matrix=cm_hybrid, display_labels=['No Hypertension', 'Hypertension'])
+disp_hybrid.plot(cmap=plt.cm.Blues)
+plt.title('Matriz de Confusão - Modelo Híbrido')
+plt.savefig('/home/bruno/Hypertension_prediction/plot-teste/confusion_matrix_hybrid.png')
+plt.close()
+print("Matriz de confusão do modelo híbrido salva.")
+
+
+# --- Gráfico de Comparação de Perda (Loss) ---
+# (Esta parte você já tinha também)
 plt.figure(figsize=(10, 6))
 plt.plot(history_classic.history['val_loss'], label='Classic MLP Val Loss')
 plt.plot(history_hybrid.history['val_loss'], label='Hybrid QML Val Loss')
@@ -150,5 +181,7 @@ plt.legend()
 plt.grid(True)
 plt.savefig('/home/bruno/Hypertension_prediction/plot-teste/loss_comparison.png')
 plt.close()
+print("Gráfico de comparação de perda salvo.")
+
 
 print("\nProcesso concluído. Saída e gráficos salvos com sucesso!")
