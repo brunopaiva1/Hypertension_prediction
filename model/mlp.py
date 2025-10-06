@@ -106,8 +106,8 @@ quantum_layer = KerasLayer(quantum_circuit, weight_shapes, output_dim=1)
 
 model_hybrid = tf.keras.models.Sequential([
     tf.keras.layers.Input(shape=(input_dim,)),
-    tf.keras.layers.Dense(32,activation='relu', kernel_regularizer=l2(0.01)),
-    tf.keras.layers.Dropout(0.6),
+    tf.keras.layers.Dense(64, activation='relu', kernel_regularizer=l2(0.01)),
+    tf.keras.layers.Dropout(0.5),
     tf.keras.layers.Dense(n_qubits, activation='tanh'),
     quantum_layer,
     tf.keras.layers.Reshape((1,)),
